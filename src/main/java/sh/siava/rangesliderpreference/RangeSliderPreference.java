@@ -18,6 +18,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 
 @SuppressWarnings("ConstantConditions")
@@ -27,7 +28,7 @@ public class RangeSliderPreference extends Preference {
     private final float valueFrom;
     private final float valueTo;
     private final float tickInterval;
-    private final float defaultValue;
+    private final List<Float> defaultValue = new ArrayList<>();
     RangeSlider slider;
     int valueCount;
 
@@ -50,7 +51,13 @@ public class RangeSliderPreference extends Preference {
         valueFrom = a.getFloat(R.styleable.RangeSliderPreference_minVal, 0f);
         valueTo = a.getFloat(R.styleable.RangeSliderPreference_maxVal, 100f);
         tickInterval = a.getFloat(R.styleable.RangeSliderPreference_tickInterval, 1f);
-        defaultValue = a.getFloat(R.styleable.Preference_defaultValue, valueFrom);
+        String defaultValStr = a.getString(R.styleable.Preference_defaultValue);
+        Scanner scanner = new Scanner(new StringReader(defaultValStr));
+        scanner.useDelimiter(",");
+        while(scanner.hasNext())
+        {
+            defaultValue.add(scanner.nextFloat());
+        }
 
         a.recycle();
 
@@ -81,19 +88,28 @@ public class RangeSliderPreference extends Preference {
     }
 
     public void syncState() {
-        List<Float> values = getValues(getSharedPreferences(), getKey(), defaultValue);
+        boolean needsCommit = false;
+
+        List<Float> values = getValues(getSharedPreferences(), getKey(), valueFrom);
 
         for (float v : values) {
             if (v < slider.getValueFrom() || v > slider.getValueTo() || v % slider.getStepSize() != 0) {
                 values.remove(v);
             }
         }
-        while (values.size() < valueCount) {
-            values.add(defaultValue);
+        if(values.size() < valueCount)
+        {
+            needsCommit = true;
+            values = defaultValue;
+            while (values.size() < valueCount) {
+                values.add(valueFrom);
+            }
         }
 
         try {
             slider.setValues(values);
+
+            if(needsCommit) savePrefs();
         } catch (Throwable t) {
             values.clear();
         }
@@ -173,10 +189,16 @@ public class RangeSliderPreference extends Preference {
         JsonReader jsonReader = new JsonReader(new StringReader(JSONString));
 
         jsonReader.beginObject();
-        jsonReader.nextName();
-        jsonReader.beginArray();
+        try {
+            jsonReader.nextName();
+            jsonReader.beginArray();
+        }catch (Exception ignored){}
 
         while (jsonReader.hasNext()) {
+            try
+            {
+                jsonReader.nextName();
+            }catch (Exception ignored){}
             values.add((float) jsonReader.nextDouble());
         }
 
