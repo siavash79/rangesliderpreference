@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <declare-styleable name="RangeSliderPreference">
+        <attr name="valueCount" format="integer"/>
+        <attr name="updatesContinuously" format="boolean"/>
+        <attr name="tickInterval" format="float"/>
+        <attr name="minVal" format="float"/>
+        <attr name="maxVal" format="float"/>
+    </declare-styleable>
+</resources>
