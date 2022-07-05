@@ -65,9 +65,12 @@ public class RangeSliderPreference extends Preference {
 
     public void savePrefs()
     {
-        try {
-            List<Float> values = slider.getValues();
+        setValues(getSharedPreferences(), getKey(), slider.getValues());
+    }
 
+    public static boolean setValues(SharedPreferences sharedPreferences, String key, List<Float> values)
+    {
+        try {
             StringWriter writer = new StringWriter();
             JsonWriter jsonWriter = new JsonWriter(writer);
             jsonWriter.beginObject();
@@ -82,9 +85,14 @@ public class RangeSliderPreference extends Preference {
             jsonWriter.close();
             String jsonString = writer.toString();
 
-            getSharedPreferences().edit().putString(getKey(), jsonString).apply();
+            sharedPreferences.edit().putString(key, jsonString).apply();
 
-        }catch (Exception ignored){}
+            return true;
+
+        }catch (Exception ignored)
+        {
+            return false;
+        }
     }
 
     public void syncState() {
