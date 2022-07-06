@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.util.JsonReader;
 import android.util.JsonWriter;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.preference.Preference;
@@ -18,6 +19,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 
@@ -52,15 +54,22 @@ public class RangeSliderPreference extends Preference {
         valueTo = a.getFloat(R.styleable.RangeSliderPreference_maxVal, 100f);
         tickInterval = a.getFloat(R.styleable.RangeSliderPreference_tickInterval, 1f);
         String defaultValStr = a.getString(R.styleable.Preference_defaultValue);
-        Scanner scanner = new Scanner(new StringReader(defaultValStr));
-        scanner.useDelimiter(",");
-        while(scanner.hasNext())
+
+        try{
+            Scanner scanner = new Scanner(defaultValStr);
+            scanner.useDelimiter(",");
+            scanner.useLocale(Locale.ENGLISH);
+
+            while(scanner.hasNext())
+            {
+                defaultValue.add(scanner.nextFloat());
+            }
+        }catch (Exception ignored)
         {
-            defaultValue.add(scanner.nextFloat());
+            Log.e(TAG, String.format("RangeSliderPreference: Error parsing default values for key: %s", getKey()));
         }
 
         a.recycle();
-
     }
 
     public void savePrefs()
