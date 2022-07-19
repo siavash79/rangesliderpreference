@@ -31,7 +31,7 @@ public class RangeSliderPreference extends Preference {
     private final float valueTo;
     private final float tickInterval;
     private final List<Float> defaultValue = new ArrayList<>();
-    RangeSlider slider;
+    public RangeSlider slider;
     int valueCount;
 
     boolean updateConstantly;
