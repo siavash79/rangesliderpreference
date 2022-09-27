@@ -23,7 +23,6 @@ import java.util.Locale;
 import java.util.Scanner;
 
 
-@SuppressWarnings("ConstantConditions")
 public class RangeSliderPreference extends Preference {
     @SuppressWarnings("unused")
     private static final String TAG = "Range Slider Preference";
@@ -108,12 +107,13 @@ public class RangeSliderPreference extends Preference {
         boolean needsCommit = false;
 
         List<Float> values = getValues(getSharedPreferences(), getKey(), valueFrom);
-
+        List<Float> temp = new ArrayList<>();
         for (float v : values) {
-            if (v < slider.getValueFrom() || v > slider.getValueTo() || v % slider.getStepSize() != 0) {
-                values.remove(v);
+            if (v > slider.getValueFrom() && v < slider.getValueTo() && v % slider.getStepSize() == 0) {
+                temp.add(v);
             }
         }
+        values = temp;
         if(values.size() < valueCount)
         {
             needsCommit = true;
