@@ -107,19 +107,30 @@ public class RangeSliderPreference extends Preference {
         boolean needsCommit = false;
 
         List<Float> values = getValues(getSharedPreferences(), getKey(), valueFrom);
-        List<Float> temp = new ArrayList<>();
-        for (float v : values) {
-            if (v > slider.getValueFrom() && v < slider.getValueTo() && v % slider.getStepSize() == 0) {
-                temp.add(v);
+
+        for(int i = 0; i < values.size(); i++)
+        {
+            float  v = Math.min(Math.max(Math.round(values.get(i)/slider.getStepSize()) * slider.getStepSize(), slider.getValueFrom()), slider.getValueTo());
+            if(v != values.get(i))
+            {
+                values.set(i, v);
+                needsCommit = true;
             }
         }
-        values = temp;
         if(values.size() < valueCount)
         {
             needsCommit = true;
             values = defaultValue;
             while (values.size() < valueCount) {
                 values.add(valueFrom);
+            }
+        }
+        else if (values.size() > valueCount)
+        {
+            needsCommit = true;
+            while(values.size() > valueCount)
+            {
+                values.remove(values.size()-1);
             }
         }
 
