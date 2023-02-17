@@ -16,6 +16,7 @@ import com.google.android.material.slider.RangeSlider;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,6 +77,7 @@ public class RangeSliderPreference extends Preference {
         setValues(getSharedPreferences(), getKey(), slider.getValues());
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean setValues(SharedPreferences sharedPreferences, String key, List<Float> values)
     {
         try {
@@ -107,13 +109,15 @@ public class RangeSliderPreference extends Preference {
         boolean needsCommit = false;
 
         List<Float> values = getValues(getSharedPreferences(), getKey(), valueFrom);
+        BigDecimal step = new BigDecimal(String.valueOf(slider.getStepSize())); //float and double are not accurate when it comes to decimal points
 
         for(int i = 0; i < values.size(); i++)
         {
-            float  v = Math.min(Math.max(Math.round(values.get(i)/slider.getStepSize()) * slider.getStepSize(), slider.getValueFrom()), slider.getValueTo());
+            BigDecimal round = new BigDecimal(Math.round(values.get(i)/slider.getStepSize()));
+            double  v = Math.min(Math.max(step.multiply(round).doubleValue(), slider.getValueFrom()), slider.getValueTo());
             if(v != values.get(i))
             {
-                values.set(i, v);
+                values.set(i, (float)v);
                 needsCommit = true;
             }
         }
