@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2011 The Android Open Source Project
+<?xml version="1.0" encoding="utf-8"?><!-- Copyright (C) 2011 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -18,43 +17,41 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:baselineAligned="false"
     android:gravity="center_vertical"
-    android:paddingEnd="?android:attr/scrollbarSize">
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginStart="35dp"
+        android:layout_marginEnd="35dp"
         android:gravity="center"
-        android:minWidth="48dp"
         android:orientation="horizontal">
 
         <ImageView
             android:id="@android:id/icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_gravity="center"
-            android:minWidth="48dp" />
+            android:contentDescription="@android:string/untitled" />
+
     </LinearLayout>
 
     <RelativeLayout
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dip"
-        android:layout_marginTop="6dip"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="6dip"
         android:layout_weight="1">
 
         <TextView
             android:id="@android:id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="marquee"
-            android:fadingEdge="horizontal"
-            android:singleLine="true"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textSize="17sp" />
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="16sp" />
 
         <TextView
             android:id="@android:id/summary"
@@ -62,9 +59,11 @@
             android:layout_height="wrap_content"
             android:layout_below="@android:id/title"
             android:layout_alignStart="@android:id/title"
+            android:layout_marginTop="2dp"
+            android:lineSpacingExtra="3sp"
             android:maxLines="4"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="?android:attr/textColorSecondary" />
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="14sp" />
 
         <!-- Preference should place its actual preference widget here. -->
         <LinearLayout
@@ -85,5 +84,4 @@
             android:layout_toEndOf="@android:id/widget_frame" />
 
     </RelativeLayout>
-
 </LinearLayout>
