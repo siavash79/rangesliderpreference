@@ -160,6 +160,8 @@ public class RangeSliderPreference extends Preference {
 
         @Override
         public void onStopTrackingTouch(@NonNull RangeSlider slider) {
+            if(!getKey().equals(slider.getTag())) return;
+
             if(!updateConstantly)
             {
                 savePrefs();
@@ -173,6 +175,7 @@ public class RangeSliderPreference extends Preference {
         super.onBindViewHolder(holder);
 
         slider = (RangeSlider) holder.findViewById(R.id.slider);
+        slider.setTag(getKey());
 
         slider.addOnSliderTouchListener(sliderTouchListener);
         slider.addOnChangeListener(changeListener);
