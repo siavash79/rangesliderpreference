@@ -239,4 +239,22 @@ public class RangeSliderPreference extends Preference {
 
         return values;
     }
+
+    public static float getSingleFloatValue(SharedPreferences prefs, String key, float defaultValue)
+    {
+        float result = defaultValue;
+
+        try
+        {
+            result = getValues(prefs, key, defaultValue).get(0);
+        }
+        catch (Throwable ignored){}
+
+        return result;
+    }
+
+    public static int getSingleIntValue(SharedPreferences prefs, String key, int defaultValue)
+    {
+        return Math.round(getSingleFloatValue(prefs, key, defaultValue));
+    }
 }
