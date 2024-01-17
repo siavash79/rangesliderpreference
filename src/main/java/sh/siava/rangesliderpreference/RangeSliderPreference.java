@@ -27,8 +27,8 @@ import java.util.Scanner;
 public class RangeSliderPreference extends Preference {
     @SuppressWarnings("unused")
     private static final String TAG = "Range Slider Preference";
-    private final float valueFrom;
-    private final float valueTo;
+    private float valueFrom;
+    private float valueTo;
     private final float tickInterval;
     private final List<Float> defaultValue = new ArrayList<>();
     public RangeSlider slider;
@@ -186,6 +186,18 @@ public class RangeSliderPreference extends Preference {
         slider.setStepSize(tickInterval);
 
         syncState();
+    }
+
+    public void setMin(float value)
+    {
+        valueFrom = value;
+        slider.setValueFrom(value);
+    }
+
+    public void setMax(float value)
+    {
+        valueTo = value;
+        slider.setValueTo(value);
     }
 
     public static List<Float> getValues(SharedPreferences prefs, String key, float defaultValue)
