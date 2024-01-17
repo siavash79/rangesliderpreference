@@ -148,6 +148,8 @@ public class RangeSliderPreference extends Preference {
     }
 
     RangeSlider.OnChangeListener changeListener = (slider, value, fromUser) -> {
+        if(!getKey().equals(slider.getTag())) return;
+
         if(updateConstantly && fromUser)
         {
             savePrefs();
