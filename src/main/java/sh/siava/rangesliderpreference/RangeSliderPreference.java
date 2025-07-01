@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceViewHolder;
 
+import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.RangeSlider;
 
 import java.io.StringReader;
@@ -31,7 +32,7 @@ public class RangeSliderPreference extends Preference {
     private float valueTo;
     private final float tickInterval;
     private final List<Float> defaultValue = new ArrayList<>();
-    public RangeSlider slider;
+    private RangeSlider slider;
     int valueCount;
 
     boolean updateConstantly;
@@ -47,34 +48,31 @@ public class RangeSliderPreference extends Preference {
 
         setLayoutResource(R.layout.range_slider);
 
-        TypedArray a =context.obtainStyledAttributes(attrs, R.styleable.RangeSliderPreference);
-        updateConstantly = a.getBoolean(R.styleable.RangeSliderPreference_updatesContinuously, false);
-        valueCount = a.getInteger(R.styleable.RangeSliderPreference_valueCount, 1);
-        valueFrom = a.getFloat(R.styleable.RangeSliderPreference_minVal, 0f);
-        valueTo = a.getFloat(R.styleable.RangeSliderPreference_maxVal, 100f);
-        tickInterval = a.getFloat(R.styleable.RangeSliderPreference_tickInterval, 1f);
-        String defaultValStr = a.getString(R.styleable.Preference_defaultValue);
+        try(TypedArray a =context.obtainStyledAttributes(attrs, R.styleable.RangeSliderPreference)) {
 
-        try{
-            Scanner scanner = new Scanner(defaultValStr);
-            scanner.useDelimiter(",");
-            scanner.useLocale(Locale.ENGLISH);
+            updateConstantly = a.getBoolean(R.styleable.RangeSliderPreference_updatesContinuously, false);
+            valueCount = a.getInteger(R.styleable.RangeSliderPreference_valueCount, 1);
+            valueFrom = a.getFloat(R.styleable.RangeSliderPreference_minVal, 0f);
+            valueTo = a.getFloat(R.styleable.RangeSliderPreference_maxVal, 100f);
+            tickInterval = a.getFloat(R.styleable.RangeSliderPreference_tickInterval, 1f);
+            String defaultValueStr = a.getString(R.styleable.Preference_defaultValue);
 
-            while(scanner.hasNext())
-            {
-                defaultValue.add(scanner.nextFloat());
+            try {
+                Scanner scanner = new Scanner(defaultValueStr);
+                scanner.useDelimiter(",");
+                scanner.useLocale(Locale.ENGLISH);
+
+                while (scanner.hasNext()) {
+                    defaultValue.add(scanner.nextFloat());
+                }
+            } catch (Exception ignored) {
+                Log.e(TAG, String.format("RangeSliderPreference: Error parsing default values for key: %s", getKey()));
             }
-        }catch (Exception ignored)
-        {
-            Log.e(TAG, String.format("RangeSliderPreference: Error parsing default values for key: %s", getKey()));
         }
-
-        a.recycle();
     }
-
-    public void savePrefs()
+    public void savePrefs(List<Float> values)
     {
-        setValues(getSharedPreferences(), getKey(), slider.getValues());
+        setValues(getSharedPreferences(), getKey(), values);
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -106,15 +104,38 @@ public class RangeSliderPreference extends Preference {
     }
 
     public void syncState() {
+        List<Float> values = getValues(getSharedPreferences(), getKey(), valueFrom);
+
+        boolean needsCommit = cleanupValues(values);
+
+        if(needsCommit) savePrefs(values);
+
+        try {
+            slider.setValues(values);
+        } catch (Throwable t) {
+            values.clear();
+        }
+    }
+
+    RangeSlider.OnChangeListener changeListener = (slider, value, fromUser) -> {
+        if(!getKey().equals(slider.getTag())) return;
+
+        if(updateConstantly && fromUser)
+        {
+            savePrefs(slider.getValues());
+        }
+    };
+
+    public boolean cleanupValues(List<Float> values)
+    {
         boolean needsCommit = false;
 
-        List<Float> values = getValues(getSharedPreferences(), getKey(), valueFrom);
-        BigDecimal step = new BigDecimal(String.valueOf(slider.getStepSize())); //float and double are not accurate when it comes to decimal points
+        BigDecimal step = new BigDecimal(String.valueOf(tickInterval)); //float and double are not accurate when it comes to decimal points
 
         for(int i = 0; i < values.size(); i++)
         {
-            BigDecimal round = new BigDecimal(Math.round(values.get(i)/slider.getStepSize()));
-            double  v = Math.min(Math.max(step.multiply(round).doubleValue(), slider.getValueFrom()), slider.getValueTo());
+            BigDecimal round = new BigDecimal(Math.round(values.get(i)/tickInterval));
+            double  v = Math.min(Math.max(step.multiply(round).doubleValue(), valueFrom), valueTo);
             if(v != values.get(i))
             {
                 values.set(i, (float)v);
@@ -124,7 +145,8 @@ public class RangeSliderPreference extends Preference {
         if(values.size() < valueCount)
         {
             needsCommit = true;
-            values = defaultValue;
+            values.clear();
+            values.addAll(defaultValue);
             while (values.size() < valueCount) {
                 values.add(valueFrom);
             }
@@ -138,23 +160,8 @@ public class RangeSliderPreference extends Preference {
             }
         }
 
-        try {
-            slider.setValues(values);
-
-            if(needsCommit) savePrefs();
-        } catch (Throwable t) {
-            values.clear();
-        }
+        return needsCommit;
     }
-
-    RangeSlider.OnChangeListener changeListener = (slider, value, fromUser) -> {
-        if(!getKey().equals(slider.getTag())) return;
-
-        if(updateConstantly && fromUser)
-        {
-            savePrefs();
-        }
-    };
 
     RangeSlider.OnSliderTouchListener sliderTouchListener = new RangeSlider.OnSliderTouchListener() {
         @Override
@@ -166,7 +173,7 @@ public class RangeSliderPreference extends Preference {
 
             if(!updateConstantly)
             {
-                savePrefs();
+                savePrefs(slider.getValues());
             }
         }
     };
@@ -181,7 +188,6 @@ public class RangeSliderPreference extends Preference {
 
         slider.addOnSliderTouchListener(sliderTouchListener);
         slider.addOnChangeListener(changeListener);
-
 
         slider.setValueFrom(valueFrom);
         slider.setValueTo(valueTo);
@@ -270,5 +276,16 @@ public class RangeSliderPreference extends Preference {
     public static int getSingleIntValue(SharedPreferences prefs, String key, int defaultValue)
     {
         return Math.round(getSingleFloatValue(prefs, key, defaultValue));
+    }
+
+    public void setLabelFormatter(LabelFormatter formatter)
+    {
+        if(slider != null) {
+            slider.setLabelFormatter(formatter);
+        }
+    }
+
+    public float getFirstValue() {
+        return valueFrom;
     }
 }
